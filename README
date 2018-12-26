@@ -33,4 +33,4 @@ make install
 
 *singularity build gromacs2018-gnu-openmpi1-cuda9-centos7-gpu.simg gromacs2018-gnu-openmpi1-cuda9-centos7-gpu/
 
- 
+RESULT: 
