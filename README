@@ -1,0 +1,36 @@
+*Purpose: Perform the benchmark of Gromacs 2018.4 on NVIDIA DGX1
+*Create the container image for the benchmark
+
+*singularity build --sandbox gromacs2018-gnu-openmpi1-cuda9-centos7-gpu/ docker://centos:latest
+*singularity shell --writable gromacs2018-gnu-openmpi1-cuda9-centos7-gpu/
+yum groupinstall 'Development Tools'
+yum install epel-release
+downlaod CUDA rpm: https://developer.nvidia.com/cuda-92-download-archive?target_os=Linux&target_arch=x86_64&target_distro=CentOS&target_version=7&target_type=rpmnetwork
+rpm -Uvh cuda-repo-rhel7-9.2.148-1.x86_64.rpm
+yum update && yum install cuda-9-0.x86_64 cuda-toolkit-9-0.x86_64
+
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ldconfig
+
+yum -y groupinstall "Infiniband Support"
+yum install librdmacm librdmacm-utils rdma-core rdma-core-devel libfabric libibverbs qperf
+yum install infiniband-diags infiniband-diags-devel infiniband-diags-devel-static ibacm ibutils libibcommon libibmad libibumad libibverbs
+yum -y install infiniband-diags perftest gperf
+yum install boost openblas fftw hwloc* numactl*
+
+*Install openmpi-1.10.7
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+./configure --with-cuda=/usr/local/cuda --with-verbs
+make -j 4
+make install
+
+*Install gromacs-2018.4
+cmake3 .. -DGMX_BUILD_OWN_FFTW=ON -DGMX_MPI=on -DGMX_GPU=on -DGMX_SIMD=AVX2_256
+make -j 4
+make install
+
+*singularity build gromacs2018-gnu-openmpi1-cuda9-centos7-gpu.simg gromacs2018-gnu-openmpi1-cuda9-centos7-gpu/
+
+ 
